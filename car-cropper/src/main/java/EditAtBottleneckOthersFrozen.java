@@ -57,7 +57,8 @@ public class EditAtBottleneckOthersFrozen {
     protected static final long seed = 12345;
     private static final int trainPerc = 80;
     private static final int batchSize = 16;
-    private static final String featureExtractionLayer = "block5_pool";
+//    private static final String featureExtractionLayer = "block5_pool";
+    private static final String featureExtractionLayer = "fc1";
 
     public static void main(String [] args) throws Exception {
 
@@ -117,28 +118,29 @@ public class EditAtBottleneckOthersFrozen {
         int iter = 0;
         while(trainIter.hasNext()) {
             vgg16Transfer.fit(trainIter.next());
-            if (iter % 10 == 0) {
+            if (iter % 25 == 0) {
                 log.info("Evaluate model at iter "+iter +" ....");
                 eval = vgg16Transfer.evaluate(testIter);
                 log.info(eval.stats());
                 testIter.reset();
 
-                //Save the model
-                //Note that the saved model will not know which layers were frozen during training.
-                //Frozen models always have to specified before training.
-                // Models with frozen layers can be constructed in the following two ways:
-                //      1. .setFeatureExtractor in the transfer learning API which will always a return a new model (as seen in this example)
-                //      2. in place with the TransferLearningHelper constructor which will take a model, and a specific vertexname
-                //              and freeze it and the vertices on the path from an input to it (as seen in the FeaturizePreSave class)
-                //The saved model can be "fine-tuned" further as in the class "FitFromFeaturized"
-                File locationToSave = new File("MyComputationGraph.zip");
-                boolean saveUpdater = false;
-                vgg16Transfer.save(locationToSave, saveUpdater);
-                log.info("Model saved");
             }
             iter++;
         }
         log.info("Model build complete");
+
+        //Save the model
+        //Note that the saved model will not know which layers were frozen during training.
+        //Frozen models always have to specified before training.
+        // Models with frozen layers can be constructed in the following two ways:
+        //      1. .setFeatureExtractor in the transfer learning API which will always a return a new model (as seen in this example)
+        //      2. in place with the TransferLearningHelper constructor which will take a model, and a specific vertexname
+        //              and freeze it and the vertices on the path from an input to it (as seen in the FeaturizePreSave class)
+        //The saved model can be "fine-tuned" further as in the class "FitFromFeaturized"
+        File locationToSave = new File("MyComputationGraph.zip");
+        boolean saveUpdater = false;
+        vgg16Transfer.save(locationToSave, saveUpdater);
+        log.info("Model saved");
 
     }
 }
