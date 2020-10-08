@@ -15,7 +15,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-import org.deeplearning4j.examples.advanced.features.transferlearning.iterators.FlowerDataSetIterator;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -65,7 +64,7 @@ public class EditAtBottleneckOthersFrozen {
         //Import vgg
         //Note that the model imported does not have an output layer (check printed summary)
         //  nor any training related configs (model from keras was imported with only weights and json)
-        log.info("\n\nLoading org.deeplearning4j.transferlearning.vgg16...\n\n");
+        log.info("\n\nLoading org.deeplearning4j.transferlearning.vgg16... Took me 20 minutes to download.\n\n");
 
         ZooModel zooModel = VGG16.builder().build();
         ComputationGraph vgg16 = (ComputationGraph) zooModel.initPretrained();
@@ -105,9 +104,9 @@ public class EditAtBottleneckOthersFrozen {
         log.info(vgg16Transfer.summary());
 
         //Dataset iterators
-        FlowerDataSetIterator.setup(batchSize,trainPerc);
-        DataSetIterator trainIter = FlowerDataSetIterator.trainIterator();
-        DataSetIterator testIter = FlowerDataSetIterator.testIterator();
+        RectangleCarIterator.setup(batchSize,trainPerc);
+        DataSetIterator trainIter = RectangleCarIterator.trainIterator();
+        DataSetIterator testIter = RectangleCarIterator.testIterator();
 
         Evaluation eval;
         eval = vgg16Transfer.evaluate(testIter);
@@ -123,23 +122,23 @@ public class EditAtBottleneckOthersFrozen {
                 eval = vgg16Transfer.evaluate(testIter);
                 log.info(eval.stats());
                 testIter.reset();
+
+                //Save the model
+                //Note that the saved model will not know which layers were frozen during training.
+                //Frozen models always have to specified before training.
+                // Models with frozen layers can be constructed in the following two ways:
+                //      1. .setFeatureExtractor in the transfer learning API which will always a return a new model (as seen in this example)
+                //      2. in place with the TransferLearningHelper constructor which will take a model, and a specific vertexname
+                //              and freeze it and the vertices on the path from an input to it (as seen in the FeaturizePreSave class)
+                //The saved model can be "fine-tuned" further as in the class "FitFromFeaturized"
+                File locationToSave = new File("MyComputationGraph.zip");
+                boolean saveUpdater = false;
+                vgg16Transfer.save(locationToSave, saveUpdater);
+                log.info("Model saved");
             }
             iter++;
         }
         log.info("Model build complete");
 
-        //Save the model
-        //Note that the saved model will not know which layers were frozen during training.
-        //Frozen models always have to specified before training.
-        // Models with frozen layers can be constructed in the following two ways:
-        //      1. .setFeatureExtractor in the transfer learning API which will always a return a new model (as seen in this example)
-        //      2. in place with the TransferLearningHelper constructor which will take a model, and a specific vertexname
-        //              and freeze it and the vertices on the path from an input to it (as seen in the FeaturizePreSave class)
-        //The saved model can be "fine-tuned" further as in the class "FitFromFeaturized"
-        File locationToSave = new File("MyComputationGraph.zip");
-        boolean saveUpdater = false;
-        vgg16Transfer.save(locationToSave, saveUpdater);
-
-        log.info("Model saved");
     }
 }
