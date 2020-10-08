@@ -57,8 +57,8 @@ public class EditAtBottleneckOthersFrozen {
     protected static final long seed = 12345;
     private static final int trainPerc = 80;
     private static final int batchSize = 16;
-//    private static final String featureExtractionLayer = "block5_pool";
-    private static final String featureExtractionLayer = "fc1";
+    private static final String featureExtractionLayer = "block5_pool";
+//    private static final String featureExtractionLayer = "fc1";
 
     public static void main(String [] args) throws Exception {
 
@@ -118,7 +118,7 @@ public class EditAtBottleneckOthersFrozen {
         int iter = 0;
         while(trainIter.hasNext()) {
             vgg16Transfer.fit(trainIter.next());
-            if (iter % 25 == 0) {
+            if (iter % 10 == 0) {
                 log.info("Evaluate model at iter "+iter +" ....");
                 eval = vgg16Transfer.evaluate(testIter);
                 log.info(eval.stats());
