@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group 'com.xobotun.vtb'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+
+    compile 'org.nd4j:nd4j-cuda-10.2-platform:1.0.0-beta7'
+    compile 'org.datavec:datavec-api:1.0.0-beta7'
+    compile 'org.datavec:datavec-data-image:1.0.0-beta7'
+    compile 'org.datavec:datavec-local:1.0.0-beta7'
+    compile 'org.deeplearning4j:deeplearning4j-datasets:1.0.0-beta7'
+    compile 'org.deeplearning4j:deeplearning4j-core:1.0.0-beta7'
+    compile 'org.deeplearning4j:deeplearning4j-ui:1.0.0-beta7'
+    compile 'org.deeplearning4j:deeplearning4j-zoo:1.0.0-beta7'
+    compile 'org.deeplearning4j:deeplearning4j-parallel-wrapper:1.0.0-beta7'
+//    compile 'jfre:jfreechart:1.0.13'
+//    compile 'org.jfree:jcommon:1.0.23'
+    compile 'org.apache.httpcomponents:httpclient:4.3.5'
+    compile 'ch.qos.logback:logback-classic:1.1.7'
+    compile 'org.datavec:datavec-data-codec:1.0.0-beta7'
+    compile 'org.bytedeco:javacv-platform:1.5.2'
+}

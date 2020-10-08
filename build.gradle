@@ -1,0 +1,17 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    group 'com.xobotun.vtb'
+    version 'hackathon-indev'
+
+    sourceCompatibility = 1.11
+
+    compileJava.options.encoding = "UTF-8"
+    compileTestJava.options.encoding = "UTF-8"
+
+    repositories {
+        mavenCentral()
+    }
+
+}
