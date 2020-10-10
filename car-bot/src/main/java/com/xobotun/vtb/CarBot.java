@@ -94,7 +94,13 @@ class CarBot {
 
         if (photo != null) {
             log.info("photo id {}", photo);
-            getFile(photo);
+            byte[] file = getFile(photo);
+            if (file == null) { sendMessage(chatId, "Failed to get file from telegram servers"); }
+            else {
+                String resp = recognizeCar(file);
+                sendMessage(chatId, resp );
+            }
+
             return "photo received";
         }
         if (text.startsWith("/start")) {
@@ -129,7 +135,7 @@ class CarBot {
     }
 
     @SneakyThrows
-    private static void getFile(String fileId) {
+    private static byte[] getFile(String fileId) {
         String token = PropertiesHelper.get(PropertiesHelper.TELEGRAM_APIKEY);
         String urlForLogging = "null";
         try {
@@ -148,24 +154,48 @@ class CarBot {
             val request2 = Unirest.get(String.format("https://api.telegram.org/file/bot%s/", token) + filePath);
 
             urlForLogging = request.getUrl();
-            Thread.sleep(250);
-            val response2 = request.asBinary(); // send it
+//            Thread.sleep(2500);
+            val response2 = request2.asBinary(); // send it
             if (response.getStatus() != 200) {
                 log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
                 log.warn(urlForLogging);
             }
 
             try {
-                byte[] rawImage = response2.getBody().readAllBytes();
-                byte[] encoded = Base64.getEncoder().encode(rawImage);
-
-                log.info("image: {}", new String(encoded));
+                return response2.getBody().readAllBytes();
             } catch (IOException e) {
                 log.warn("Failed to read image from stream, url {}", urlForLogging, e);
             }
         } catch (UnirestException e) {
             log.warn(String.format("Could not send request to %s", urlForLogging));
         }
+
+        return null;
+    }
+
+    private static String recognizeCar(byte[] image) {
+        String token = PropertiesHelper.get(PropertiesHelper.VTB_APIKEY);
+        String urlForLogging = "null";
+        try {
+            val request = Unirest.post("https://gw.hackathon.vtb.ru/vtb/hackathon/car-recognize")
+                                 .header("X-IBM-Client-Id", token)
+                                 .body("{\"content\":\"" + new String(Base64.getEncoder().encode(image)) + "\"}");
+
+//            urlForLogging = request.getUrl();
+            val response = request.asString(); // send it
+            if (response.getStatus() != 200) {
+                log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
+                log.warn(urlForLogging);
+            }
+
+            String body = response.getBody();
+            log.info("recognition: {}", body);
+            return body;
+        } catch (UnirestException e){
+            log.warn(String.format("Could not send request to %s", urlForLogging));
+        }
+
+        return null;
     }
 
     private static String getHelp() {
