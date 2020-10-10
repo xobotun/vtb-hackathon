@@ -97,17 +97,14 @@ class CarBot {
 
         if (photo != null) {
             log.info("photo id {}", photo);
-            byte[] file = getFile(photo);
-            if (file == null) { sendMessage(chatId, "Failed to get file from telegram servers"); }
-            else {
-                String resp = recognizeCar(file);
-                val sorted = parseRecognition(resp);
-                Double best = sorted.lastKey();
-                sendMessage(chatId, String.format("%f chance it is %s", best, sorted.get(best)));
-            }
-
-            return "photo received";
+            byte[] file = getTelegramFile(photo);
+            return handleCarRecognition(chatId, file);
         }
+        if (text.startsWith("http")) {
+            byte[] file = getFile(text);
+            return handleCarRecognition(chatId, file);
+        }
+
         if (text.startsWith("/start")) {
             sendMessage(chatId, getGreetings());
             return "started";
@@ -120,6 +117,28 @@ class CarBot {
 
         sendMessage(chatId, badRequest());
         return "bad request";
+    }
+
+    private static String handleCarRecognition(long chatId, byte[] file) {
+        if (file == null) { sendMessage(chatId, "Failed to get file from url"); }
+        else {
+            try {
+                String resp = recognizeCar(file);
+                val sorted = parseRecognition(resp);
+                if (sorted.isEmpty()) {
+                    sendMessage(chatId, "Failed to recognize");
+                    return "photo received";
+                }
+
+                Double best = sorted.lastKey();
+                sendMessage(chatId, String.format("%f chance it is %s", best, sorted.get(best)));
+            } catch (VtbException e) {
+                sendMessage(chatId, "Received unexpected message from VTB backend");
+                sendMessage(chatId, e.getMessage());
+            }
+        }
+
+        return "photo received";
     }
 
     private static void sendMessage(long chatId, String text) {
@@ -140,7 +159,7 @@ class CarBot {
     }
 
     @SneakyThrows
-    private static byte[] getFile(String fileId) {
+    private static byte[] getTelegramFile(String fileId) {
         String token = PropertiesHelper.get(PropertiesHelper.TELEGRAM_APIKEY);
         String urlForLogging = "null";
         try {
@@ -159,18 +178,8 @@ class CarBot {
             val request2 = Unirest.get(String.format("https://api.telegram.org/file/bot%s/", token) + filePath);
 
             urlForLogging = request.getUrl();
-//            Thread.sleep(2500);
-            val response2 = request2.asBinary(); // send it
-            if (response.getStatus() != 200) {
-                log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
-                log.warn(urlForLogging);
-            }
 
-            try {
-                return response2.getBody().readAllBytes();
-            } catch (IOException e) {
-                log.warn("Failed to read image from stream, url {}", urlForLogging, e);
-            }
+            return getFile(urlForLogging);
         } catch (UnirestException e) {
             log.warn(String.format("Could not send request to %s", urlForLogging));
         }
@@ -178,7 +187,21 @@ class CarBot {
         return null;
     }
 
-    private static String recognizeCar(byte[] image) {
+    @SneakyThrows
+    private static byte[] getFile(String url) {
+        val request2 = Unirest.get(url);
+
+        val response = request2.asBinary(); // send it
+
+        try {
+            return response.getBody().readAllBytes();
+        } catch (IOException e) {
+            log.warn("Failed to read image from stream, url {}", url, e);
+            return null;
+        }
+    }
+
+    private static String recognizeCar(byte[] image) throws RuntimeException {
         String token = PropertiesHelper.get(PropertiesHelper.VTB_APIKEY);
         String urlForLogging = "null";
         try {
@@ -191,6 +214,7 @@ class CarBot {
             if (response.getStatus() != 200) {
                 log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
                 log.warn(urlForLogging);
+                throw new VtbException(response.getBody());
             }
 
             String body = response.getBody();
