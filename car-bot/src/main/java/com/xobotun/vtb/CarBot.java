@@ -2,6 +2,7 @@ package com.xobotun.vtb;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.http.HttpHost;
@@ -20,6 +21,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
+
+import java.io.IOException;
+import java.util.Base64;
 
 import static spark.Spark.port;
 import static spark.Spark.post;
@@ -72,7 +76,12 @@ class CarBot {
 
         } catch (JSONException e) {
             // not a text message, may be a changed text message
-            text = body.getJSONObject("edited_message").getString("text");
+            try {
+                text = body.getJSONObject("edited_message").getString("text");
+            } catch (JSONException e2) {
+                // not a text message. Still, no need for sending photo data
+            }
+
             chatId = body.getJSONObject("edited_message").getJSONObject("chat").getLong("id");
         }
         //#endregion
@@ -85,6 +94,7 @@ class CarBot {
 
         if (photo != null) {
             log.info("photo id {}", photo);
+            getFile(photo);
             return "photo received";
         }
         if (text.startsWith("/start")) {
@@ -112,6 +122,46 @@ class CarBot {
             if (response.getStatus() != 200) {
                 log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
                 log.warn(urlForLogging);
+            }
+        } catch (UnirestException e) {
+            log.warn(String.format("Could not send request to %s", urlForLogging));
+        }
+    }
+
+    @SneakyThrows
+    private static void getFile(String fileId) {
+        String token = PropertiesHelper.get(PropertiesHelper.TELEGRAM_APIKEY);
+        String urlForLogging = "null";
+        try {
+            val request = Unirest.get(String.format("https://api.telegram.org/bot%s/getFile", token)).queryString("file_id", fileId);
+
+            urlForLogging = request.getUrl();
+            val response = request.asString(); // send it
+            if (response.getStatus() != 200) {
+                log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
+                log.warn(urlForLogging);
+            }
+
+            String filePath = new JSONObject(response.getBody()).getJSONObject("result").getString("file_path");
+            log.info("file path for {} is {}", fileId, filePath);
+
+            val request2 = Unirest.get(String.format("https://api.telegram.org/file/bot%s/", token) + filePath);
+
+            urlForLogging = request.getUrl();
+            Thread.sleep(250);
+            val response2 = request.asBinary(); // send it
+            if (response.getStatus() != 200) {
+                log.warn(String.format("%d %s %s", response.getStatus(), response.getStatusText(), response.getBody()));
+                log.warn(urlForLogging);
+            }
+
+            try {
+                byte[] rawImage = response2.getBody().readAllBytes();
+                byte[] encoded = Base64.getEncoder().encode(rawImage);
+
+                log.info("image: {}", new String(encoded));
+            } catch (IOException e) {
+                log.warn("Failed to read image from stream, url {}", urlForLogging, e);
             }
         } catch (UnirestException e) {
             log.warn(String.format("Could not send request to %s", urlForLogging));
