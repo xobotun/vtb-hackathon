@@ -24,6 +24,9 @@ import spark.Response;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static spark.Spark.port;
 import static spark.Spark.post;
@@ -98,7 +101,9 @@ class CarBot {
             if (file == null) { sendMessage(chatId, "Failed to get file from telegram servers"); }
             else {
                 String resp = recognizeCar(file);
-                sendMessage(chatId, resp );
+                val sorted = parseRecognition(resp);
+                Double best = sorted.lastKey();
+                sendMessage(chatId, String.format("%f chance it is %s", best, sorted.get(best)));
             }
 
             return "photo received";
@@ -196,6 +201,19 @@ class CarBot {
         }
 
         return null;
+    }
+
+    private static SortedMap<Double, String> parseRecognition(String raw) {
+        if (raw == null) return Collections.emptySortedMap();
+
+        JSONObject body = new JSONObject(raw).getJSONObject("probabilities");
+
+        SortedMap<Double, String> result = new TreeMap<>();
+        for (String key : body.keySet()) {
+            result.put(body.getDouble(key), key);
+        }
+
+        return result;
     }
 
     private static String getHelp() {
