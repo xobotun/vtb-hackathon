@@ -1,3 +1,5 @@
+package com.xobotun.vtb;
+
 import lombok.SneakyThrows;
 import lombok.val;
 

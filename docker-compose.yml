@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  carbot:
+    image: car-bot:latest
+    restart: always
+    networks:
+      nginx-network:
+        aliases:
+          - nginx-vtb-car-bot.xobotun.com-container
+
+networks:
+  nginx-network:
+    external: true
