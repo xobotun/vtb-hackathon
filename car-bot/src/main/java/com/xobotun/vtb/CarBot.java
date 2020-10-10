@@ -49,17 +49,38 @@ class CarBot {
 
         JSONObject body = new JSONObject(request.body());
 
-        String text;
+        String text = null;
         String photo = null;
         long chatId;
+
+        //#region parsing message
         try {
             text = body.getJSONObject("message").getString("text");
+        } catch (JSONException e) {
+            // not a text message
+        }
+
+        try {
             val photos = body.getJSONObject("message").getJSONArray("photo");
             photo = photos == null ? null : photos.getJSONObject(0).getString("file_id");
-            chatId = body.getJSONObject("message").getJSONObject("chat").getLong("id");
         } catch (JSONException e) {
+            // not a photo message
+        }
+
+        try {
+            chatId = body.getJSONObject("message").getJSONObject("chat").getLong("id");
+
+        } catch (JSONException e) {
+            // not a text message, may be a changed text message
             text = body.getJSONObject("edited_message").getString("text");
             chatId = body.getJSONObject("edited_message").getJSONObject("chat").getLong("id");
+        }
+        //#endregion
+
+        //#region handling parsed message
+        if (photo == null && text == null) {
+            sendMessage(chatId, badRequest());
+            return "bad request";
         }
 
         if (photo != null) {
@@ -74,6 +95,7 @@ class CarBot {
             sendMessage(chatId, getHelp());
             return "helped";
         }
+        //#endregion
 
         sendMessage(chatId, badRequest());
         return "bad request";
