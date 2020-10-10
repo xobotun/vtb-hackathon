@@ -1,3 +1,4 @@
 rootProject.name = 'vtb-hack'
 
 include 'car-cropper'
+include 'car-bot'

@@ -78,7 +78,7 @@ public class EditAtBottleneckOthersFrozen {
             .activation(Activation.LEAKYRELU)
             .weightInit(WeightInit.RELU)
             .updater(new Nesterovs(5e-5))
-            .dropOut(0.5)
+            .dropOut(0.25)
             .seed(seed)
             .build();
 
@@ -91,12 +91,14 @@ public class EditAtBottleneckOthersFrozen {
             .nOutReplace("fc2",1024, WeightInit.XAVIER) //modify nOut of the "fc2" vertex
             .removeVertexAndConnections("predictions") //remove the final vertex and it's connections
             .addLayer("fc3",new DenseLayer.Builder().activation(Activation.TANH).nIn(1024).nOut(256).build(),"fc2") //add in a new dense layer
+            .addLayer("fc4",new DenseLayer.Builder().activation(Activation.TANH).nIn(256).nOut(256).build(),"fc3") //add in a new dense layer
+            .addLayer("fc5",new DenseLayer.Builder().activation(Activation.TANH).nIn(256).nOut(256).build(),"fc4") //add in a new dense layer
             .addLayer("newpredictions",new OutputLayer
                                         .Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                                         .activation(Activation.SOFTMAX)
                                         .nIn(256)
                                         .nOut(numClasses)
-                                        .build(),"fc3") //add in a final output dense layer,
+                                        .build(),"fc5") //add in a final output dense layer,
                                                         // note that learning related configurations applied on a new layer here will be honored
                                                         // In other words - these will override the finetune confs.
                                                         // For eg. activation function will be softmax not RELU
@@ -118,12 +120,11 @@ public class EditAtBottleneckOthersFrozen {
         int iter = 0;
         while(trainIter.hasNext()) {
             vgg16Transfer.fit(trainIter.next());
-            if (iter % 10 == 0) {
+            if (iter % 1 == 0) {
                 log.info("Evaluate model at iter "+iter +" ....");
                 eval = vgg16Transfer.evaluate(testIter);
                 log.info(eval.stats());
                 testIter.reset();
-
             }
             iter++;
         }
