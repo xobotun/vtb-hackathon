@@ -249,7 +249,7 @@ class CarBot {
     }
 
     private static String getGreetings() {
-        return "Ой, привет! Я – НяфферкоБот, я умею считать АП до следующей няфферки и люблю это делать. Просто скажи мне твоё текущее АП и я скажу тебе, что тебе надо сделать до следующей няфферки. :3\n" + "А ещё я умею делать всякое другое:\n\n" + getHelp();
+        return "This team-17 bot accepts images and runs them against VTB car recognition backend and lists car with highest likelihood. Also accepts raw http links from the wild web.";
     }
 
 }
