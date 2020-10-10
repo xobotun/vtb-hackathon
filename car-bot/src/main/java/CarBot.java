@@ -27,9 +27,9 @@ class CarBot {
     static {
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("username", "password"));
+        credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(PropertiesHelper.get(PropertiesHelper.PROXY_LOGIN), PropertiesHelper.get(PropertiesHelper.PROXY_PASSWORD)));
         clientBuilder.useSystemProperties();
-        clientBuilder.setProxy(new HttpHost("host", 3128));
+        clientBuilder.setProxy(new HttpHost(PropertiesHelper.get(PropertiesHelper.PROXY_HOST), Integer.parseInt(PropertiesHelper.get(PropertiesHelper.PROXY_PORT))));
         clientBuilder.setDefaultCredentialsProvider(credsProvider);
         clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
         Lookup<AuthSchemeProvider> authProviders = RegistryBuilder.<AuthSchemeProvider>create().register(AuthSchemes.BASIC, new BasicSchemeFactory()).build();
@@ -38,7 +38,7 @@ class CarBot {
     }
 
     public static void main(String[] args) {
-        port(Integer.parseInt(System.getProperty("httpport")));
+        port(Integer.parseInt(PropertiesHelper.get(PropertiesHelper.HTTP_PORT)));
         post("/", CarBot::processCommand);
     }
 
@@ -71,7 +71,7 @@ class CarBot {
     }
 
     private static void sendMessage(long chatId, String text) {
-        String token = "confidential"; // TODO
+        String token = PropertiesHelper.get(PropertiesHelper.TELEGRAM_APIKEY);
         String urlForLogging = "null";
         try {
             val request = Unirest.get(String.format("https://api.telegram.org/bot%s/sendMessage", token)).queryString("chat_id", Long.toString(chatId)).queryString("text", text).queryString("parse_mode", "Markdown");
