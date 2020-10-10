@@ -1,0 +1,90 @@
+<configuration>
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/log_current.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>log/log_%d{yyyy-MM-dd}T%d{HH:mm:ss, aux}_%i.log.zip</fileNamePattern>
+
+            <!-- keep 30 days' worth of history -->
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%date %-5level [%thread] %42logger{42}:%-4line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="time-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/log_time_current.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>log/time/log_time_%d{yyyy-MM-dd}T%d{HH:mm:ss, aux}_%i.log.zip</fileNamePattern>
+
+            <!-- keep 30 days' worth of history -->
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>14</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%date %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="audit-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/log_audit_current.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>log/audit/log_audit_%d{yyyy-MM-dd}T%d{HH:mm:ss, aux}_%i.log.zip</fileNamePattern>
+
+            <!-- keep 30 days' worth of history -->
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>365</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%date %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+           ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %42logger{42}:%-4line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="asyncOne" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="file"/>
+    </appender>
+
+    <!-- Loggers below -->
+
+<!--    <logger name="org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod" level="TRACE" additivity="false">-->
+<!--        <appender-ref ref="audit-file"/>-->
+<!--    </logger>-->
+    <logger name="AUDIT_LOG" level="DEBUG" additivity="false">
+<!--        <appender-ref ref="audit-file"/>-->
+        <appender-ref ref="console"/>
+    </logger>
+
+    <logger name="TIME_MEASURE_LOG" level="DEBUG" additivity="false">
+<!--        <appender-ref ref="time-file"/>-->
+        <appender-ref ref="console"/>
+    </logger>
+
+<!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder">-->
+<!--        <level value="TRACE"/>-->
+<!--    </logger>-->
+
+    <root level="INFO">
+<!--        <appender-ref ref="file"/>-->
+        <appender-ref ref="console"/>
+    </root>
+</configuration>

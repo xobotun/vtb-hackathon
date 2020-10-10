@@ -50,15 +50,22 @@ class CarBot {
         JSONObject body = new JSONObject(request.body());
 
         String text;
+        String photo = null;
         long chatId;
         try {
             text = body.getJSONObject("message").getString("text");
+            val photos = body.getJSONObject("message").getJSONArray("photo");
+            photo = photos == null ? null : photos.getJSONObject(0).getString("file_id");
             chatId = body.getJSONObject("message").getJSONObject("chat").getLong("id");
         } catch (JSONException e) {
             text = body.getJSONObject("edited_message").getString("text");
             chatId = body.getJSONObject("edited_message").getJSONObject("chat").getLong("id");
         }
 
+        if (photo != null) {
+            log.info("photo id {}", photo);
+            return "photo received";
+        }
         if (text.startsWith("/start")) {
             sendMessage(chatId, getGreetings());
             return "started";
