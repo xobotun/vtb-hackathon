@@ -177,7 +177,7 @@ class CarBot {
 
             val request2 = Unirest.get(String.format("https://api.telegram.org/file/bot%s/", token) + filePath);
 
-            urlForLogging = request.getUrl();
+            urlForLogging = request2.getUrl();
 
             return getFile(urlForLogging);
         } catch (UnirestException e) {
