@@ -25,6 +25,6 @@ public class HardcodedPriceService {
     public static String get(String mark) {
         String price = PRICES.get(mark);
 
-        return price == NO_PRICE ? NO_PRICE : "Такая машина стоит от " + price + " рублей";
+        return price == NO_PRICE ? NO_PRICE : "Такая машина стоит от " + price + " рублей. И они у нас есть в наличии [тут](https://developer.hackathon.vtb.ru/vtb/hackathon/)!";
     }
 }
