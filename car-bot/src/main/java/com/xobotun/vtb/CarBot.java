@@ -133,7 +133,7 @@ class CarBot {
                 Double best = sorted.lastKey();
                 String price = HardcodedPriceService.get(sorted.get(best));
                 if (best > 0.85) {
-                    sendMessage(chatId, String.format("Это %s, я уверен на %d%%! " + price, sorted.get(best), (int)(best * 100)));
+                    sendMessage(chatId, String.format("Это %s, я уверен на %d%%!\n" + price, sorted.get(best), (int)(best * 100)));
                 } else {
                     sendMessage(chatId, String.format("Это может быть %s, но я в этом уверен лишь на %d%%. Вполне возможно, что меня этой модели не обучали и я её с чем-то спутал.", sorted.get(best), (int)(best * 100)));
                 }
@@ -254,7 +254,7 @@ class CarBot {
     }
 
     private static String getGreetings() {
-        return "Бот для определения марки и модели машин приветствует вас! Он принимает картинки и ссылки на них.";
+        return "Я умею определять марку и модель машины. Можете прислать фотографию, или картинку из интернета и я подскажу, что это за авто.";
     }
 
 }
