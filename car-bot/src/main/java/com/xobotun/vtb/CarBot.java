@@ -126,12 +126,17 @@ class CarBot {
                 String resp = recognizeCar(file);
                 val sorted = parseRecognition(resp);
                 if (sorted.isEmpty()) {
-                    sendMessage(chatId, "Failed to recognize");
+                    sendMessage(chatId, "Я не смог распознать эту машину, увы. :(");
                     return "photo received";
                 }
 
                 Double best = sorted.lastKey();
-                sendMessage(chatId, String.format("%f chance it is %s", best, sorted.get(best)));
+                String price = HardcodedPriceService.get(sorted.get(best));
+                if (best > 0.85) {
+                    sendMessage(chatId, String.format("Это %s, я уверен на %d%%! " + price, sorted.get(best), (int)(best * 100)));
+                } else {
+                    sendMessage(chatId, String.format("Это может быть %s, но я в этом уверен лишь на %d%%. Вполне возможно, что меня этой модели не обучали и я её с чем-то спутал.", sorted.get(best), (int)(best * 100)));
+                }
             } catch (VtbException e) {
                 sendMessage(chatId, "Received unexpected message from VTB backend");
                 sendMessage(chatId, e.getMessage());
@@ -241,7 +246,7 @@ class CarBot {
     }
 
     private static String getHelp() {
-        return "`/help` — я всегда подскажу, как ко мне обратиться. :3\n" + "`/calc num1 num2` — то, для чего я и была создана – считать твои действия до няфферки. Просто укажи мне два числа – и я подскажу как пройти от одного к другому. :3\n" + "`/calc num1 num2 mult` — если на этой неделе Нянтик ввели множитель АП, напиши его в конце, я не очень слежу за новостями.\n" + "`/list` — если тебе интересно, какие действия я умею учитывать при подсчёте АП до следующей няфферки.";
+        return "Просто пришли мне картинку или ссылку на неё и я попытаюсь определить, что за машина на ней изображена.";
     }
 
     private static String badRequest() {
@@ -249,7 +254,7 @@ class CarBot {
     }
 
     private static String getGreetings() {
-        return "This team-17 bot accepts images and runs them against VTB car recognition backend and lists car with highest likelihood. Also accepts raw http links from the wild web.";
+        return "Бот для определения марки и модели машин приветствует вас! Он принимает картинки и ссылки на них.";
     }
 
 }
